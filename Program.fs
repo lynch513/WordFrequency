@@ -6,8 +6,15 @@ let readLines (filePath : string) = seq {
         yield sr.ReadLine ()
 }
 
+let splitString (x: string) =
+    x.Split([|','; ' '; ':'; '!'; '.'|])
+
+let trimString (x: string) =
+    x.Trim ()
+
 let wordSeq (xs: string seq) =
     xs
+    // |> Seq.collect (splitString >> Array.map trimString)
     |> Seq.collect (fun (x: string) -> x.Split([|','; ' '; ':'; '!'; '.'|])) 
     |> Seq.map (fun (x: string) -> x.Trim ())
 
