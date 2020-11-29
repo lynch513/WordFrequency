@@ -56,33 +56,32 @@ module Words =
             |> countFrequencyAndSort
 
 
-let application filePath wordCount =
-    let wordsFreq = 
-        filePath
-        |> IO.readLines
-        |> Words.takeMostFrequencyWordsFromSeq
-        |> Seq.take wordCount
-    printfn "%i most common words in %s:" wordCount filePath
-    for (word, freq) in wordsFreq do
-        printfn "%s: %i" word freq
-
-
 [<EntryPoint>]
 let main argv =
-    let filePath = if argv.Length > 0 then Some(argv.[0]) else None 
-    let wordCount = if argv.Length > 1 then Some(argv.[1]) else None
     let defaultWordCount = 10
-    
+
+    let filePath = if argv.Length > 0 then Some(argv.[0]) else None 
+    let wordCount = 
+        match argv with
+        | _ when argv.Length > 1 ->
+            match Int32.TryParse argv.[1] with
+            | true, d -> Some d 
+            | false, _ -> None 
+        | _ -> Some defaultWordCount
+
     try
-        match filePath, wordCount with
-        | Some(filePath), None -> 
-            application filePath defaultWordCount
-        | Some(filePath), Some(wordCount) -> 
-            match Int32.TryParse wordCount with
-            | true, d -> 
-                application filePath d
-            | false, _ -> printfn "Argument wordCount must be integer"
-        | _, _ -> printfn "Usage: dotnet run -- <filePath> [wordCount]"
+        match filePath with
+        | Some(filePath) -> 
+            match wordCount with
+            | Some d -> 
+                printfn "%i most common words in %s:" d filePath
+                filePath
+                |> IO.readLines 
+                |> Words.takeMostFrequencyWordsFromSeq 
+                |> Seq.take d
+                |> Seq.iter (fun (word, freq) -> printfn "%s: %i" word freq)
+            | _ -> printfn "Argument [wordCount] must be integer"
+        | _ -> printfn "Usage: dotnet run -- <filePath> [wordCount]"
     with 
     | _ -> printfn "Argument <filePath>: file not found or input illegal path" 
     0 // return an integer exit code
